@@ -28,8 +28,11 @@ url: "https://mh4t2.github.io"
 github:
   username: mh4t2 # change to your GitHub username
 
-twitter:
-  username: twitter_username # change to your Twitter username
+# twitter:
+#   username: twitter_username # change to your Twitter username
+linkedin:
+  username: sergio-m-renteria
+
 
 social:
   # Change to your full name.
