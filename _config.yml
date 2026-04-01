@@ -16,7 +16,7 @@ timezone:
 
 title: mh4t2 # the main title
 
-tagline: CTFs, Challenges & Ethical Hacking content. # it will display as the subtitle
+tagline: CTFs, Challenges & Ethical Hacking content # it will display as the subtitle
 
 description: >- # used by seo meta and the atom feed
   .
