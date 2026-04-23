@@ -3,7 +3,12 @@ title: "HackTheBox Machine - Authority"
 date: 2026-02-11 20:00:00 -0600
 categories: [Writeups, HachTheBox]
 tags: [HTB Easy Machines, Active Directory, SeMachineAccountPrivilege, ESC1, nmap, dig, netexec, smbmap, smbclient, ansible2john, ansible-vault, evil-winrm-py, responder, certipy-ad, impacket-lookupsid, impacket-addcomputer, SMB, WirRM, HTTP, LDAP]
+
+image:
+    path: /assets/img/samples/htb-authority-machine/authority.png
+    alt: OSCP
 ---
+
 
 
 ## TCP Scan
