@@ -42,6 +42,8 @@ Powershell
 
 ### Host Discovery
 
+...
+
 ##### Automated Discovery
 
 **netdiscover**:
