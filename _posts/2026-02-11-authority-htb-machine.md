@@ -5,7 +5,7 @@ categories: [Writeups, HachTheBox]
 tags: [HTB Easy Machines, Active Directory, SeMachineAccountPrivilege, ESC1, nmap, dig, netexec, smbmap, smbclient, ansible2john, ansible-vault, evil-winrm-py, responder, certipy-ad, impacket-lookupsid, impacket-addcomputer, SMB, WirRM, HTTP, LDAP]
 
 image:
-    path: /assets/img/samples/htb-authority-machine/authority.png
+    path: /assets/img/samples/htb-authority-machine/Authority.png
     alt: OSCP
 ---
 
