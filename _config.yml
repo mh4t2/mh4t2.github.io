@@ -6,7 +6,7 @@ theme: jekyll-theme-chirpy
 # The language of the webpage › http://www.lingoes.net/en/translator/langcode.htm
 # If it has the same name as one of the files in folder `_data/locales`, the layout language will also be changed,
 # otherwise, the layout language will use the default value of 'en'.
-lang: en
+lang: es
 
 # Change to your timezone › https://zones.arilyn.cc
 timezone:
@@ -16,7 +16,7 @@ timezone:
 
 title: mh4t2 # the main title
 
-tagline: CTFs, Challenges & Ethical Hacking content # it will display as the subtitle
+tagline: eJPT | Ethical Hacker, CTF Player, Pentester # it will display as the subtitle
 
 description: >- # used by seo meta and the atom feed
   .
@@ -31,7 +31,7 @@ github:
 # twitter:
 #   username: twitter_username # change to your Twitter username
 linkedin:
-  username: sergio-m-renteria
+  username:
 
 
 social:
@@ -45,7 +45,7 @@ social:
     - https://github.com/mh4t2 # change to your GitHub homepage
     # Uncomment below to add more social links
     # - https://www.facebook.com/username
-    - https://www.linkedin.com/in/sergio-m-renteria
+    - https://www.linkedin.com/
 
 # Site Verification Settings
 webmaster_verifications:
@@ -101,7 +101,7 @@ theme_mode: # [light | dark]
 cdn:
 
 # the avatar on sidebar, support local or CORS resources
-avatar:
+avatar: /assets/img/samples/another/mh4t2logo.jpg
 
 # The URL of the site-wide social preview image used in SEO `og:image` meta tag.
 # It can be overridden by a customized `page.image` in front matter.
